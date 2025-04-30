@@ -1,18 +1,39 @@
-const express = require("express");
+// app.js
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
+require('dotenv').config(); 
+
+const authRoutes = require('./routes/auth.routes');
+const ownerRoutes = require('./routes/owner.routes');
 
 const app = express();
-app.use(express.json());
 
+// Security middleware
+app.use(helmet());
+app.use(cors());
+app.use(hpp());
+app.use(cookieParser());
 
-app.get("/test", async (req, res) => {
-
-  res.send("API is running...");
-
-
+// Rate limiting
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour',
 });
+app.use('/api', limiter);
 
+// Body parser
+app.use(express.json({ limit: '10kb' }));
+
+// Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/owners', ownerRoutes);
+
+// Global error handler
+//app.use(globalErrorHandler);
 
 module.exports = app;
-
-
-
