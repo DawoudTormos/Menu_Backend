@@ -1,7 +1,7 @@
 // controllers/auth.controller.js
 const authService = require('../services/auth.service');
 
-exports.register = async (req, res, next) => {
+const register = async (req, res, next) => {
   try {
     const { fname, lname, username, password } = req.body;
     const serviceResult = await authService.registerOwner( fname, lname, username, password);
@@ -31,7 +31,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-exports.login = async (req, res, next) => {
+const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const serviceResult = await authService.loginOwner(username, password);
@@ -56,4 +56,9 @@ exports.login = async (req, res, next) => {
 
     });
   }
+};
+
+module.exports = {
+  register,
+  login,
 };

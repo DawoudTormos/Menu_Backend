@@ -2,7 +2,7 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 
-exports.protect = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -32,4 +32,8 @@ exports.protect = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+module.exports = {
+  protect,
 };
