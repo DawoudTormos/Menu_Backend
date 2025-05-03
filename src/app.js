@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config(); 
 
 const authRoutes = require('./routes/auth.routes');
-const ownerRoutes = require('./routes/publicData.routes');
+const publicData = require('./routes/publicData.routes');
 
 const app = express();
 
@@ -31,7 +31,7 @@ app.use(express.json({ limit: '10kb' }));
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/owners', ownerRoutes);
+app.use('/api/v1/public', publicData);
 
 // Global error handler
 //app.use(globalErrorHandler);

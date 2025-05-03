@@ -1,11 +1,8 @@
-// routes/owner.routes.js
 const express = require('express');
 const router = express.Router();
+const publicDataController = require('../controllers/publicData.controller');
 
-
-
-router.get('/getRestuarantData', ()=>{});
-router.get('/getItemsData', ()=>{});
-router.get('/getPic', ()=>{});
+router.get('/getRestaurantData/:ownerId', publicDataController.getRestaurantData);
+router.get('/getItemsData/:ownerId', publicDataController.getItemsData);
 
 module.exports = router;
