@@ -9,6 +9,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth.routes');
 const publicData = require('./routes/publicData.routes');
+const categoryRoutes = require('./routes/category.routes');
 
 const app = express();
 
@@ -33,6 +34,8 @@ app.use(express.json({ limit: '10kb' }));
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/public', publicData);
 
+// Add this with other route middleware
+app.use('/api/v1/categories', categoryRoutes);
 // Global error handler
 //app.use(globalErrorHandler);
 
