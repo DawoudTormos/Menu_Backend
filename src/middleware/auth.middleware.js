@@ -1,5 +1,5 @@
 // middleware/auth.middleware.js
-const jwt = require('jsonwebtoken');
+const jwt = require('../utils/jwt');
 const db = require('../config/db');
 
 const protect = async (req, res, next) => {
@@ -16,7 +16,7 @@ const protect = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verifyToken(token);
     const result = await db.query('SELECT * FROM owners WHERE id = $1', [decoded.id]);
     const currentOwner = result.rows[0];
 

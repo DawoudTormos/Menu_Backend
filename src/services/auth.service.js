@@ -1,13 +1,9 @@
 // services/auth.service.js
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const jwt = require('../utils/jwt');
 const db = require('../config/db');
 
-const generateToken = (ownerId) => {
-  return jwt.sign({ id: ownerId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRATION,
-  });
-};
+
 
 const registerOwner = async ( fname, lname, username, password) => {
   const usernameFound = await db.query('SELECT * FROM owners WHERE username = $1', [username]);
@@ -19,10 +15,10 @@ const registerOwner = async ( fname, lname, username, password) => {
 
   const hashedPassword = await bcrypt.hash(password, 12);
   const result = await db.query(
-    'INSERT INTO owners (fname, lname, username, password) VALUES ($1, $2, $3, $4) RETURNING  fname, lname, username',
+    'INSERT INTO owners (fname, lname, username, password) VALUES ($1, $2, $3, $4) RETURNING  id, fname, lname, username',
     [fname, lname, username, hashedPassword]
   );
-  return { success: true, newOwner: result.rows[0] };
+  return { success: true, newOwner: result.rows[0], token: jwt.generateToken(result.rows[0].id) };
 
 };
 
@@ -41,12 +37,12 @@ const loginOwner = async (username, password) => {
     return { success: false, message: 'Invalid credentials' }
 
   }
-  return { success: true, token: generateToken(owner.id) }
+  return { success: true, token: jwt.generateToken(owner.id) }
 
 };
 
 module.exports = {
   registerOwner,
-  loginOwner,
-  generateToken,
+  loginOwner
+  
 };

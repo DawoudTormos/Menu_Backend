@@ -13,11 +13,10 @@ const register = async (req, res, next) => {
     }
 
     const owner = serviceResult.newOwner;
-    const token = authService.generateToken(owner.id);
 
     return res.status(201).json({
       status: 'success',
-      token,
+      token: serviceResult.token,
       data: owner,
       
     });
