@@ -42,7 +42,7 @@ const login = async (req, res, next) => {
     }else{
       return res.status(200).json({
         status: 'success',
-        oken: serviceResult.token,
+        token: serviceResult.token,
       });
     }
 
