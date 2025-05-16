@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const ownerId = req.owner.id;
     const itemName = req.body.name || 'temp';
-    const uploadPath = path.join(__dirname, `../../images/${ownerId}/${req.body.category_id}/${itemName.replace(/[^a-z0-9]/gi, '_')}`);
+    const uploadPath = path.join(__dirname, `../../images/${ownerId}/${req.body.category_id}`);///${itemName.replace(/[^a-z0-9]/gi, '_')}
     
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
