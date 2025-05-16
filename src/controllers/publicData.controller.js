@@ -3,7 +3,7 @@ const publicDataService = require('../services/publicData.service');
 const getRestaurantData = async (req, res) => {
     try {
         const ownerId = req.params.ownerId;
-        const restaurantData = await publicDataService.getRestaurantData(ownerId);
+        const serviceResult = await publicDataService.getRestaurantData(ownerId);
 
         if(!serviceResult.success) {
             const code = serviceResult.code || 200;
@@ -16,7 +16,7 @@ const getRestaurantData = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: restaurantData
+            data: serviceResult
         }); 
     } catch (error) {
         res.status(500).json({
