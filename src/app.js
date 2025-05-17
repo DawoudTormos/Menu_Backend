@@ -30,6 +30,7 @@ app.use('/api', limiter);
 
 // Body parser
 app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
 // Routes
 app.use('/api/v1/auth', authRoutes);

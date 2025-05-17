@@ -9,7 +9,7 @@ const createItem = async ({
   category_id,
   ownerId,
   images,
-  mainImageIndex,
+  mainImageOriginalName,
 }) => {
   try {
     // Validate category belongs to owner
@@ -36,10 +36,10 @@ const createItem = async ({
     // Process images
     if (images && images.length) {
       for (let i = 0; i < images.length; i++) {
-        const isMain = i === parseInt(mainImageIndex || 0);
+        const isMain = images[i].originalname === mainImageOriginalName;
         await db.query(
           "INSERT INTO images (item_id, image_url, ismain) VALUES ($1, $2, $3)",
-          [item.id, images[i].path.replace(/\\/g, "/"), isMain]
+          [item.id, images[i].filename.replace(/\\/g, "/"), isMain]
         );
       }
     }
@@ -91,6 +91,25 @@ function deleteEmptyParents(dir) {
   }
 }
 
+ function moveFileWithDirCreation(sourcePath, destinationPath) {
+    // Extract the directory part of the destination path
+    const destinationDir = path.dirname(destinationPath);
+    const sourceDir = path.dirname(sourcePath);
+    
+    // Create directories recursively if they don't exist
+    if (!fs.existsSync(destinationDir)) {
+      fs.mkdirSync(destinationDir, { recursive: true });
+    }
+    
+    // Move the file
+    fs.renameSync(sourcePath, destinationPath);
+    deleteEmptyParents(sourceDir);
+
+  
+}
+
+
+
 const updateItem = async ({
   itemId,
   name,
@@ -105,7 +124,7 @@ const updateItem = async ({
   try {
     // Verify item belongs to owner
     const itemCheck = await db.query(
-      `SELECT i.id FROM items i 
+      `SELECT i.id, c.id as category_id_old FROM items i 
        JOIN categories c ON i.category_id = c.id 
        WHERE i.id = $1 AND c.owner_id = $2`,
       [itemId, ownerId]
@@ -119,6 +138,10 @@ const updateItem = async ({
       };
     }
 
+    await db.query("BEGIN");
+
+    if(itemCheck.rows[0].category_id_old != category_id){
+
     // Validate new category belongs to owner
     const categoryCheck = await db.query(
         "SELECT 1 FROM categories WHERE id = $1 AND owner_id = $2",
@@ -126,13 +149,38 @@ const updateItem = async ({
       );
   
       if (!categoryCheck.rows.length) {
-        cleanup(images);
+        
         return { success: false, code: 400, message: "Invalid category" };
       }
 
-      
+      /////
+         // Get images to move
+    const images = await db.query(
+      "SELECT image_url FROM images WHERE item_id = $1",
+      [itemId]
+    );
 
-    await db.query("BEGIN");
+   // move images to new category
+     images.rows.forEach( (image) => {
+      try {
+         moveFileWithDirCreation(`./images/${ownerId}/${itemCheck.rows[0].category_id_old}/${image.image_url}`, `./images/${ownerId}/${category_id}/${image.image_url}`);
+
+      } catch (err) {
+        console.error("Error moving image file:", err);
+        throw err;
+      }
+    });
+    }
+
+
+
+    
+
+ 
+
+    ////
+
+    
 
     // Update item details
     await db.query(
@@ -140,56 +188,7 @@ const updateItem = async ({
       [name, description, price, category_id, itemId]
     );
 
-    // Delete specified images
-    if (imagesToDelete && imagesToDelete.length) {
-      for (const imageId of imagesToDelete) {
-        const image = await db.query(
-          "SELECT * FROM images WHERE id = $1 AND item_id = $2",
-          [imageId, itemId]
-        );
-        if (image.rows.length) {
-          fs.unlinkSync(image.rows[0].image_url);
-          deleteEmptyParents(path.dirname(image.image_url))
-          await db.query("DELETE FROM images WHERE id = $1", [imageId]);
-        }
-      }
-    }
-
-
-    // Add new images
-    if (newImages && newImages.length) {
-      for (let i = 0; i < newImages.length; i++) {
-        const isMain = i === parseInt(mainImageIndex || 0);
-        await db.query(
-          "INSERT INTO images (item_id, image_url, ismain) VALUES ($1, $2, $3)",
-          [itemId, newImages[i].path.replace(/\\/g, "/"), isMain]
-        );
-      }
-    }
-
-
-
-    // Update main image if not specified
-    if (mainImageID !== undefined && mainImageID !== null && Number.isInteger(mainImageID)) {
-      await db.query(`
-            UPDATE images 
-            SET ismain = CASE WHEN id = $2 THEN true ELSE false END
-            WHERE item_id = $1;`,
-            [itemId, mainImageID]);
-    }else{
-      await db.query(`WITH oldest_image AS (
-          SELECT id 
-          FROM images 
-          WHERE item_id = $1 
-          ORDER BY created_at ASC 
-          LIMIT 1
-        )
-        UPDATE images 
-        SET ismain = CASE WHEN id = (SELECT id FROM oldest_image) THEN true ELSE false END
-        WHERE item_id = $1;`,
-        [itemId]);
-
-    }
+   
 
     await db.query("COMMIT");
 
@@ -203,11 +202,94 @@ const updateItem = async ({
   }
 };
 
+
+
+const updateItemImages = async ({
+  itemId,
+  ownerId,
+  category_id,
+  newImages,
+  mainImageOriginalName
+}) => {
+  try {
+        // Verify item belongs to owner
+    const itemCheck = await db.query(
+      `SELECT i.id, c.id as category_id FROM items i 
+       JOIN categories c ON i.category_id = c.id 
+       WHERE i.id = $1 AND c.owner_id = $2`,
+      [itemId, ownerId]
+    );
+
+    if (!itemCheck.rows.length) {
+      cleanup(newImages); // Cleanup any uploaded files on error
+      return {
+        success: false,
+        code: 404,
+        message: "Item not found or not owned by you",
+      };
+    }
+    if(itemCheck.rows[0].category_id != category_id){
+      cleanup(newImages); // Cleanup any uploaded files on error
+      return {
+        success: false,
+        code: 400,
+        message: "Wrong category",
+      };
+    }
+
+    await db.query("BEGIN");
+
+    // Get images to delete
+    const images = await db.query(
+      "SELECT image_url FROM images WHERE item_id = $1",
+      [itemId]
+    );
+
+    
+
+    // Delete images from filesystem
+    images.rows.forEach((image) => {
+      try {
+        const pathToDelete = `./images/${ownerId}/${itemCheck.rows[0].category_id}/${image.image_url}`;
+        fs.unlinkSync(pathToDelete);
+        deleteEmptyParents(path.dirname(pathToDelete));
+      } catch (err) {
+        console.error("Error deleting image file:", err);
+        throw err;
+
+      }
+    });
+
+    // Delete from database
+    await db.query("DELETE FROM images WHERE item_id = $1", [itemId]);
+
+    await db.query("COMMIT");
+
+
+    //add images to db
+        if (newImages && newImages.length) {
+      for (let i = 0; i < newImages.length; i++) {
+        const isMain = newImages[i].originalname === mainImageOriginalName;
+        await db.query(
+          "INSERT INTO images (item_id, image_url, ismain) VALUES ($1, $2, $3)",
+          [itemId, newImages[i].filename.replace(/\\/g, "/"), isMain]
+        );
+      }
+    }
+
+    return { success: true };
+  } catch (error) {
+    await db.query("ROLLBACK");
+    cleanup(newImages); // Cleanup any uploaded files on error
+    throw error;
+  }
+}
+
 const deleteItem = async (itemId, ownerId) => {
   try {
     // Verify item belongs to owner
     const itemCheck = await db.query(
-      `SELECT i.id FROM items i 
+      `SELECT i.id, c.id as category_id FROM items i 
        JOIN categories c ON i.category_id = c.id 
        WHERE i.id = $1 AND c.owner_id = $2`,
       [itemId, ownerId]
@@ -232,10 +314,13 @@ const deleteItem = async (itemId, ownerId) => {
     // Delete images from filesystem
     images.rows.forEach((image) => {
       try {
-        fs.unlinkSync(image.image_url);
-        deleteEmptyParents(path.dirname(image.image_url));
+        const pathToDelete = `./images/${ownerId}/${itemCheck.rows[0].category_id}/${image.image_url}`;
+        fs.unlinkSync(pathToDelete);
+        deleteEmptyParents(path.dirname(pathToDelete));
       } catch (err) {
         console.error("Error deleting image file:", err);
+        throw err;
+
       }
     });
 
@@ -306,4 +391,5 @@ module.exports = {
   updateItem,
   deleteItem,
   deleteImage,
+  updateItemImages,
 };

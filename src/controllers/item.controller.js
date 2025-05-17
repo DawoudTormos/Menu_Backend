@@ -2,9 +2,10 @@ const itemService = require('../services/item.service');
 
 const createItem = async (req, res) => {
   try {
-    const { name, description, price, category_id, mainImageIndex } = req.body;
+    const { name, description, price, category_id, mainImageOriginalName } = req.body;
     const ownerId = req.owner.id;
     const images = req.files;
+    const images2 = req.files;
 
     const serviceResult = await itemService.createItem({
       name,
@@ -13,7 +14,7 @@ const createItem = async (req, res) => {
       category_id,
       ownerId,
       images,
-      mainImageIndex
+      mainImageOriginalName
     });
 
     if (!serviceResult.success) {
@@ -37,10 +38,9 @@ const createItem = async (req, res) => {
 
 const updateItem = async (req, res) => {
   try {
+        const { name, description, price, category_id } = req.body;
     const itemId = req.params.id;
-    const { name, description, price, category_id, mainImageID, imagesToDelete } = req.body;
     const ownerId = req.owner.id;
-    const newImages = req.files;
 
     const serviceResult = await itemService.updateItem({
       itemId,
@@ -49,9 +49,9 @@ const updateItem = async (req, res) => {
       price,
       category_id,
       ownerId,
-      newImages,
-      mainImageID,
-      imagesToDelete
+      //newImages,
+      //mainImageID,
+      //imagesToDelete
     });
 
     if (!serviceResult.success) {
@@ -66,12 +66,51 @@ const updateItem = async (req, res) => {
       data: serviceResult.data
     });
   } catch (error) {
+    console.error('Error updating item:', error);
     res.status(500).json({
       success: false,
       error: error.message
     });
   }
 };
+
+
+
+const updateItemImages = async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    const { mainImageOriginalName, category_id } = req.body;
+    const ownerId = req.owner.id;
+    const newImages = req.files;
+
+    const serviceResult = await itemService.updateItemImages({
+      itemId,
+      ownerId,
+      newImages,
+      category_id,
+      mainImageOriginalName,
+      
+    });
+
+    if (!serviceResult.success) {
+      return res.status(serviceResult.code || 400).json({
+        success: false,
+        message: serviceResult.message
+      });
+    }
+
+    res.status(200).json({// 200 OK
+      success: true,
+      data: serviceResult.data
+    });
+  } catch (error) {
+  console.error('Error updating item:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+}
 
 const deleteItem = async (req, res) => {
   try {
@@ -129,5 +168,6 @@ module.exports = {
   createItem,
   updateItem,
   deleteItem,
-  deleteImage
+  deleteImage,
+  updateItemImages
 };
