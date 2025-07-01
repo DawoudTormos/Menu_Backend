@@ -35,6 +35,15 @@ const getImage = (req, res) => {
       safeFilename
     );
 
+    // Verify path is within allowed directory
+    const resolvedPath = path.resolve(filePath);
+    if (!resolvedPath.startsWith(IMAGES_DIR)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden path'
+      });
+    }
+
     // Check if file exists
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
