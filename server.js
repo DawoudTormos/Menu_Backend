@@ -4,8 +4,8 @@ const app = require('./src/app');// HTTP Server
 
 const server = http.createServer(app);
 
-server.keepAliveTimeout = 360000; // 600 seconds
-server.headersTimeout = 365000; // Must be > keepAliveTimeout
+server.keepAliveTimeout = 400000; // 600 seconds
+server.headersTimeout = 405000; // Must be > keepAliveTimeout
 
 
 const PORT = process.env.PORT || 5000;
