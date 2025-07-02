@@ -1,5 +1,6 @@
 // app.js
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -11,6 +12,7 @@ const authRoutes = require('./routes/auth.routes');
 const publicData = require('./routes/publicData.routes');
 const categoryRoutes = require('./routes/category.routes');
 const itemRoutes = require('./routes/item.routes');
+const imageRoutes = require('./routes/image.routes');
 
 const app = express();
 
@@ -37,6 +39,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/public', publicData);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/items', itemRoutes);
+app.use('/api/v1/images', imageRoutes);
 
 // Global error handler
 //app.use(globalErrorHandler);
