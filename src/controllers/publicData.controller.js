@@ -16,7 +16,7 @@ const getRestaurantData = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: serviceResult
+            data: serviceResult.data
         }); 
     } catch (error) {
         res.status(500).json({

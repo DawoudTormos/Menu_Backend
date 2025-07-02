@@ -2,15 +2,28 @@ const db = require('../config/db');
 
 const getRestaurantData = async (ownerId) => {
     const query = `
-        SELECT restaurant_name, logo_path 
-        FROM owners 
-        WHERE id = $1
+        SELECT o.restaurant_name, o.logo_path, ct.name as color_theme_name, ct.data as color_theme_data
+        FROM owners o
+        JOIN color_themes ct ON o.color_theme_id = ct.id
+        WHERE o.id = $1
     `;
     const result = await db.query(query, [ownerId]);
     if (result.rows.length === 0) {
         return {success: false, code: 404, message: 'Restaurant not found'}
     }
-    return {success: true, data: result.rows[0]} || null;
+    
+    // Parse the color theme JSON data
+    const restaurantData = result.rows[0];
+    restaurantData.color_theme = {
+        name: restaurantData.color_theme_name,
+        colors: JSON.parse(restaurantData.color_theme_data)
+    };
+    
+    // Remove the raw fields we don't need in response
+    delete restaurantData.color_theme_name;
+    delete restaurantData.color_theme_data;
+    
+    return {success: true, data: restaurantData};
 };
 
 const getItemsData = async (ownerId) => {

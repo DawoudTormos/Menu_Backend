@@ -3,8 +3,8 @@ const authService = require('../services/auth.service');
 
 const register = async (req, res, next) => {
   try {
-    const { fname, lname, username, password } = req.body;
-    const serviceResult = await authService.registerOwner( fname, lname, username, password);
+    const { fname, lname, username, password, color_theme_id } = req.body;
+    const serviceResult = await authService.registerOwner( fname, lname, username, password, color_theme_id);
 
     if(!serviceResult.success) {
       return res.status(200).json({

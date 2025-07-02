@@ -5,7 +5,7 @@ const db = require('../config/db');
 
 
 
-const registerOwner = async ( fname, lname, username, password) => {
+const registerOwner = async ( fname, lname, username, password, color_theme_id) => {
   const usernameFound = await db.query('SELECT * FROM owners WHERE username = $1', [username]);
   const isUsernameFound = usernameFound.rows[0];
 
@@ -15,8 +15,8 @@ const registerOwner = async ( fname, lname, username, password) => {
 
   const hashedPassword = await bcrypt.hash(password, 12);
   const result = await db.query(
-    'INSERT INTO owners (fname, lname, username, password) VALUES ($1, $2, $3, $4) RETURNING  id, fname, lname, username',
-    [fname, lname, username, hashedPassword]
+    'INSERT INTO owners (fname, lname, username, password, color_theme_id) VALUES ($1, $2, $3, $4, $5) RETURNING  id, fname, lname, username',
+    [fname, lname, username, hashedPassword, color_theme_id]
   );
   return { success: true, newOwner: result.rows[0], token: jwt.generateToken(result.rows[0].id) };
 
