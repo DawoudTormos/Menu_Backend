@@ -52,8 +52,34 @@ const getItemsData = async (req, res) => {
     }
 };
 
+const getTags = async (req, res) => {
+    try {
+        const serviceResult = await publicDataService.getTags();
+
+        if(!serviceResult.success) {
+            const code = serviceResult.code || 200;
+            return res.status(code).json({
+                success: false,
+                code: code,
+                message: serviceResult.message,
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: serviceResult.data
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     getRestaurantData,
     getItemsData,
+    getTags 
+
 };
