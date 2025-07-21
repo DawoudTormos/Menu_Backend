@@ -117,9 +117,7 @@ const updateItem = async ({
   price,
   category_id,
   ownerId,
-  newImages,
-  mainImageID,
-  imagesToDelete,
+
 }) => {
   try {
     // Verify item belongs to owner
@@ -172,16 +170,6 @@ const updateItem = async ({
     });
     }
 
-
-
-    
-
- 
-
-    ////
-
-    
-
     // Update item details
     await db.query(
       "UPDATE items SET name = $1, description = $2, price = $3, category_id = $4 WHERE id = $5",
@@ -207,7 +195,6 @@ const updateItem = async ({
 const updateItemImages = async ({
   itemId,
   ownerId,
-  category_id,
   newImages,
   mainImageOriginalName
 }) => {
@@ -228,14 +215,7 @@ const updateItemImages = async ({
         message: "Item not found or not owned by you",
       };
     }
-    if(itemCheck.rows[0].category_id != category_id){
-      cleanup(newImages); // Cleanup any uploaded files on error
-      return {
-        success: false,
-        code: 400,
-        message: "Wrong category",
-      };
-    }
+
 
     await db.query("BEGIN");
 

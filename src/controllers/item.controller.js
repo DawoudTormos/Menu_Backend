@@ -5,7 +5,6 @@ const createItem = async (req, res) => {
     const { name, description, price, category_id, mainImageOriginalName } = req.body;
     const ownerId = req.owner.id;
     const images = req.files;
-    const images2 = req.files;
 
     const serviceResult = await itemService.createItem({
       name,
@@ -49,9 +48,7 @@ const updateItem = async (req, res) => {
       price,
       category_id,
       ownerId,
-      //newImages,
-      //mainImageID,
-      //imagesToDelete
+
     });
 
     if (!serviceResult.success) {
@@ -79,7 +76,7 @@ const updateItem = async (req, res) => {
 const updateItemImages = async (req, res) => {
   try {
     const itemId = req.params.id;
-    const { mainImageOriginalName, category_id } = req.body;
+    const { mainImageOriginalName } = req.body;
     const ownerId = req.owner.id;
     const newImages = req.files;
 
@@ -87,7 +84,6 @@ const updateItemImages = async (req, res) => {
       itemId,
       ownerId,
       newImages,
-      category_id,
       mainImageOriginalName,
       
     });
