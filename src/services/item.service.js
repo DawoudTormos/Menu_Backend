@@ -216,7 +216,6 @@ const updateItemImages = async ({
       };
     }
 
-
     await db.query("BEGIN");
 
     // Get images to delete
@@ -225,8 +224,6 @@ const updateItemImages = async ({
       [itemId]
     );
 
-    
-
     // Delete images from filesystem
     images.rows.forEach((image) => {
       try {
@@ -234,7 +231,7 @@ const updateItemImages = async ({
         fs.unlinkSync(pathToDelete);
         deleteEmptyParents(path.dirname(pathToDelete));
       } catch (err) {
-        console.error("Error deleting image file:", err);
+        console.error("\nError deleting image file:\n");
         throw err;
 
       }
@@ -243,7 +240,6 @@ const updateItemImages = async ({
     // Delete from database
     await db.query("DELETE FROM images WHERE item_id = $1", [itemId]);
 
-    await db.query("COMMIT");
 
 
     //add images to db
@@ -256,6 +252,8 @@ const updateItemImages = async ({
         );
       }
     }
+    
+    await db.query("COMMIT");
 
     return { success: true };
   } catch (error) {

@@ -6,8 +6,21 @@ const fs = require('fs');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const ownerId = req.owner.id;
-    const uploadPath = path.join(__dirname, `../../images/${ownerId}/${req.body.category_id}`);///${itemName.replace(/[^a-z0-9]/gi, '_')}
-    
+    let uploadPath = "";
+
+    ///${itemName.replace(/[^a-z0-9]/gi, '_')}
+    if ( req.body !== undefined && req.body !== null && req.body.category_id !== undefined ) {
+      uploadPath = path.join(__dirname, `../../images/${ownerId}/${req.body.category_id}`);
+    } else if ( req.item !== undefined && req.item !== null && req.item.category_id !== undefined && req.item.category_id !== null) {
+      uploadPath = path.join(__dirname, `../../images/${ownerId}/${req.item.category_id}`);
+    }else{
+      // If neither req.body.category_id nor req.item.category_id is available, return a 500 error
+      const err = new Error('Category ID is missing for file upload');
+      err.status = 500;
+      cb(err);
+      return;
+    }
+
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
@@ -36,6 +49,25 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
+
+const handleUploadErrors = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    // Multer errors (file size, file count)
+    return res.status(400).json({
+      success: false,
+      success2: false,
+      error: err.message
+    });
+  } else if (err) {
+    // Our custom errors
+    return res.status(err.status || 500).json({
+      success: false,
+      error: err.message
+    });
+  }
+  next();
+};
 module.exports = {
     upload,
+    handleUploadErrors
 };

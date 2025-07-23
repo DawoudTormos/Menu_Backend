@@ -33,7 +33,7 @@ app.use('/api', limiter);
 // Body parser
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '3mb' }));
-app.use((req, res, next) => {
+/*app.use((req, res, next) => {
   console.log(`\n\n[${new Date().toISOString()}] \n${req.method} ${req.originalUrl} `);
   console.log('Headers:', req.headers);
   console.log('Body:', req.body);
@@ -41,7 +41,7 @@ app.use((req, res, next) => {
   console.log('Params:', req.params);
   console.log('---');
   next();
-});
+});/**/
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/public', publicData);
