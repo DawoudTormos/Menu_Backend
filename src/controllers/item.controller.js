@@ -2,7 +2,7 @@ const itemService = require('../services/item.service');
 
 const createItem = async (req, res) => {
   try {
-    const { name, description, price, category_id, mainImageOriginalName } = req.body;
+    const { name, description, price, category_id, mainImageOriginalName, tags } = req.body;
     const ownerId = req.owner.id;
     const images = req.files;
 
@@ -13,7 +13,8 @@ const createItem = async (req, res) => {
       category_id,
       ownerId,
       images,
-      mainImageOriginalName
+      mainImageOriginalName,
+      tags
     });
 
     if (!serviceResult.success) {
@@ -37,7 +38,7 @@ const createItem = async (req, res) => {
 
 const updateItem = async (req, res) => {
   try {
-        const { name, description, price, category_id } = req.body;
+        const { name, description, price, category_id, tags } = req.body;
     const itemId = req.params.id;
     const ownerId = req.owner.id;
 
@@ -48,6 +49,7 @@ const updateItem = async (req, res) => {
       price,
       category_id,
       ownerId,
+      tags
 
     });
 

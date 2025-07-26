@@ -10,6 +10,7 @@ const createItem = async ({
   ownerId,
   images,
   mainImageOriginalName,
+  tags
 }) => {
   try {
     // Validate category belongs to owner
@@ -43,6 +44,8 @@ const createItem = async ({
         );
       }
     }
+
+    await updateItemTags(item.id, tags);
 
     await db.query("COMMIT");
 
@@ -109,6 +112,24 @@ function deleteEmptyParents(dir) {
 }
 
 
+// Add helper function for tag management
+const updateItemTags = async (itemId, tags) => {
+
+  tags = tags.split(",").map(tag => tag.trim()).filter(tag => tag !== "");
+
+ await db.query('DELETE FROM item_tag WHERE item_id = $1', [itemId]);
+  
+  if (tags && tags.length) {
+    const insertValues = tags.map(tagId => `(${itemId}, ${tagId})`).join(',');
+    console.log("Inserting item tags:", insertValues);
+
+    await db.query(`
+      INSERT INTO item_tag (item_id, tag_id)
+      VALUES ${insertValues}
+    `);
+  }
+};
+
 
 const updateItem = async ({
   itemId,
@@ -117,6 +138,7 @@ const updateItem = async ({
   price,
   category_id,
   ownerId,
+  tags
 
 }) => {
   try {
@@ -175,6 +197,9 @@ const updateItem = async ({
       "UPDATE items SET name = $1, description = $2, price = $3, category_id = $4 WHERE id = $5",
       [name, description, price, category_id, itemId]
     );
+
+    await updateItemTags(itemId, tags);
+
 
    
 
@@ -350,17 +375,19 @@ const deleteImage = async (imageId, ownerId) => {
 };
 
 const getItemWithDetails = async (itemId) => {
-  const itemResult = await db.query("SELECT * FROM items WHERE id = $1", [
-    itemId,
-  ]);
-  const imagesResult = await db.query(
-    "SELECT * FROM images WHERE item_id = $1",
-    [itemId]
-  );
+  const itemResult = await db.query("SELECT * FROM items WHERE id = $1", [itemId]);
+  const imagesResult = await db.query("SELECT * FROM images WHERE item_id = $1", [itemId]);
+  const tagsResult = await db.query(`
+    SELECT t.id, t.name, t.color 
+    FROM item_tag it
+    JOIN tags t ON it.tag_id = t.id
+    WHERE it.item_id = $1
+  `, [itemId]);
 
   return {
     ...itemResult.rows[0],
     images: imagesResult.rows,
+    tags: tagsResult.rows
   };
 };
 

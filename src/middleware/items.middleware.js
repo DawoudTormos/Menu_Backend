@@ -47,8 +47,6 @@ const checkCategoryOwnership = async (req, res, next) =>{
         const ownerId = req.owner.id;
         const {category_id} = req.body;
 
-        console.log("Checking category ownership for category_id:", req.body.category_id, "and ownerId:", ownerId);  
-
     const categoryCheck = await db.query(
       "SELECT 1 FROM categories WHERE id = $1 AND owner_id = $2",
       [category_id, ownerId]
