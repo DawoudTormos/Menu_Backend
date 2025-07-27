@@ -26,6 +26,37 @@ const createCategory = async (req, res) => {
     }
 };
 
+const updateCategory = async (req, res) => {
+    try {
+        const categoryId = req.params.id;
+        const { name } = req.body;
+        const ownerId = req.owner.id;
+        
+        const serviceResult = await categoryService.updateCategory(
+            categoryId, 
+            name, 
+            ownerId
+        );
+
+        if (!serviceResult.success) {
+            return res.status(serviceResult.code || 400).json({
+                success: false,
+                message: serviceResult.message
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: serviceResult.data
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
 const deleteCategory = async (req, res) => {
     try {
         const categoryId = req.params.id;
@@ -54,5 +85,6 @@ const deleteCategory = async (req, res) => {
 
 module.exports = {
     createCategory,
+    updateCategory,
     deleteCategory
 };

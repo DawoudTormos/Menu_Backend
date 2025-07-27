@@ -29,6 +29,61 @@ const createCategory = async (name, ownerId) => {
     }
 };
 
+const updateCategory = async (categoryId, newName, ownerId) => {
+    try {
+        // Validate input
+        if (!newName) {
+            return { 
+                success: false, 
+                code: 400, 
+                message: 'Category name is required' 
+            };
+        }
+
+        // Check category ownership
+        const verifyResult = await db.query(
+            'SELECT * FROM categories WHERE id = $1 AND owner_id = $2',
+            [categoryId, ownerId]
+        );
+
+        if (verifyResult.rows.length === 0) {
+            return { 
+                success: false, 
+                code: 404, 
+                message: 'Category not found or not owned by you' 
+            };
+        }
+
+        // Check for duplicate name
+        const nameCheck = await db.query(
+            'SELECT id FROM categories WHERE name = $1 AND owner_id = $2 AND id != $3',
+            [newName, ownerId, categoryId]
+        );
+
+        if (nameCheck.rows.length > 0) {
+            return { 
+                success: false, 
+                code: 400, 
+                message: 'Category name already exists for your restaurant' 
+            };
+        }
+
+        // Update category
+        const updateResult = await db.query(
+            'UPDATE categories SET name = $1 WHERE id = $2 RETURNING *',
+            [newName, categoryId]
+        );
+
+        return { 
+            success: true, 
+            data: updateResult.rows[0],
+            message: 'Category updated successfully'
+        };
+    } catch (error) {
+        throw error;
+    }
+};
+
 const deleteCategory = async (categoryId, ownerId) => {
     try {
         // Verify category belongs to owner
@@ -69,5 +124,6 @@ const deleteCategory = async (categoryId, ownerId) => {
 
 module.exports = {
     createCategory,
+    updateCategory,
     deleteCategory
 };
