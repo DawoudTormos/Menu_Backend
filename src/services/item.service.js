@@ -253,8 +253,13 @@ const updateItemImages = async ({
     images.rows.forEach((image) => {
       try {
         const pathToDelete = `./images/${ownerId}/${itemCheck.rows[0].category_id}/${image.image_url}`;
-        fs.unlinkSync(pathToDelete);
-        deleteEmptyParents(path.dirname(pathToDelete));
+        const parentDir = path.dirname(pathToDelete);
+        if (fs.existsSync(pathToDelete)) {
+            fs.unlinkSync(pathToDelete);
+        }
+        if(fs.existsSync(parentDir)){
+          deleteEmptyParents(parentDir);
+        } 
       } catch (err) {
         console.error("\nError deleting image file:\n");
         throw err;
@@ -318,8 +323,15 @@ const deleteItem = async (itemId, ownerId) => {
     images.rows.forEach((image) => {
       try {
         const pathToDelete = `./images/${ownerId}/${itemCheck.rows[0].category_id}/${image.image_url}`;
-        fs.unlinkSync(pathToDelete);
-        deleteEmptyParents(path.dirname(pathToDelete));
+        const parentDir = path.dirname(pathToDelete);
+        if (fs.existsSync(pathToDelete)) {
+            fs.unlinkSync(pathToDelete);
+        }
+        if(fs.existsSync(parentDir)){
+          deleteEmptyParents(parentDir);
+        }
+            //console.log(`Deleted old logo: ${oldLogoFullPath}`);
+          
       } catch (err) {
         console.error("Error deleting image file:", err);
         throw err;
