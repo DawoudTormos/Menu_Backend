@@ -13,6 +13,7 @@ const publicData = require('./routes/publicData.routes');
 const categoryRoutes = require('./routes/category.routes');
 const itemRoutes = require('./routes/item.routes');
 const imageRoutes = require('./routes/image.routes');
+const restaurantDetailsRoutes = require('./routes/restaurant.routes');
 
 const app = express();
 
@@ -24,7 +25,7 @@ app.use(cookieParser());
 
 // Rate limiting
 const limiter = rateLimit({
-  max: 100,
+  max: 5000,
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP, please try again in an hour',
 });
@@ -48,6 +49,8 @@ app.use('/api/v1/public', publicData);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/images', imageRoutes);
+app.use('/api/v1/restaurant', restaurantDetailsRoutes);
+
 
 // Global error handler
 //app.use(globalErrorHandler);
