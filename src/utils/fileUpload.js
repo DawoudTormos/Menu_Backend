@@ -8,6 +8,13 @@ const storage = multer.diskStorage({
     const ownerId = req.owner.id;
     let uploadPath = "";
 
+        // Handle logo uploads
+    if (req.route.path === '/logo') {
+        const logoPath = path.join(__dirname, `../../images/${ownerId}/logo/`);
+        fs.mkdirSync(logoPath, { recursive: true });
+        return cb(null, logoPath);
+    }
+
     ///${itemName.replace(/[^a-z0-9]/gi, '_')}
     if ( req.body !== undefined && req.body !== null && req.body.category_id !== undefined ) {
       uploadPath = path.join(__dirname, `../../images/${ownerId}/${req.body.category_id}`);
