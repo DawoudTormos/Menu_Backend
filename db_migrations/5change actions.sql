@@ -1,0 +1,1 @@
+changed action in item_tag table to cascade on delete and on update in both fkeys
