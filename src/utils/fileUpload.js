@@ -62,7 +62,6 @@ const handleUploadErrors = (err, req, res, next) => {
     // Multer errors (file size, file count)
     return res.status(400).json({
       success: false,
-      success2: false,
       error: err.message
     });
   } else if (err) {
