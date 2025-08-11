@@ -41,8 +41,27 @@ const loginOwner = async (username, password) => {
 
 };
 
+const developerPasswordReset = async (username, newPassword) => {
+  try {
+    const userResult = await db.query('SELECT * FROM owners WHERE username = $1', [username]);
+    const user = userResult.rows[0];
+    
+    if (!user) {
+      return { success: false, message: 'User not found' };
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await db.query('UPDATE owners SET password = $1 WHERE username = $2', [hashedPassword, username]);
+    
+    return { success: true, message: 'Password updated successfully' };
+  } catch (err) {
+    console.error('Developer password reset error:', err);
+    return { success: false, message: 'Error resetting password' };
+  }
+};
+
 module.exports = {
   registerOwner,
-  loginOwner
-  
+  loginOwner,
+  developerPasswordReset
 };

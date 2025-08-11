@@ -57,7 +57,41 @@ const login = async (req, res, next) => {
   }
 };
 
+const developerResetPassword = async (req, res) => {
+  try {
+    const { developerKey, username, newPassword } = req.body;
+    
+    if (developerKey !== "key"/*process.env.DEVELOPER_SECRET*/) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid developer key'
+      });
+    }
+
+    const serviceResult = await authService.developerPasswordReset(username, newPassword);
+    
+    if (!serviceResult.success) {
+      return res.status(404).json({
+        success: false,
+        message: serviceResult.message
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully'
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
+  developerResetPassword,
 };
